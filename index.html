@@ -183,7 +183,7 @@ async function lookup(){
     if(r) found.push(r);
   }
   if(!found.length){
-    msg.className='msg err'; msg.textContent='해당 번호로 등록된 담당자가 없습니다.';
+    msg.className='msg err'; msg.textContent='해당 차량 번호로 등록된 기사님이 없습니다.';
     return;
   }
   msg.textContent='';
@@ -191,7 +191,7 @@ async function lookup(){
     const telRaw = (f.phone||'').replace(/[^0-9+]/g,'');
     results.insertAdjacentHTML('beforeend', `
       <div class="card">
-        <div class="role">차량 ${esc(plate)} 담당</div>
+        <div class="role"> ${esc(plate)} 차량 기사님 정보</div>
         <div class="name">${esc(f.name)}</div>
         ${f.memo?`<div class="memo">${esc(f.memo)}</div>`:''}
         <a class="tel" href="tel:${telRaw}">📞 ${esc(f.phone)}</a>
