@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>기사님 연락처 조회 | 삼성중공업-명지/하단/에코델타시티 출퇴근 버스</title>
+<meta name="description" content="버스 번호판 뒤 4자리로 해당 차량 기사님 연락처를 조회합니다.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#101E2B;
+    --ink-2:#1B3448;
+    --paper:#EDEFF1;
+    --card:#FFFFFF;
+    --line:#C9D0D7;
+    --muted:#5C6B78;
+    --signal:#F2C230;
+    --ok:#1B6B4C;
+    --warn:#A8412A;
+    --sans:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,system-ui,'Malgun Gothic',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:var(--sans);
+    background:var(--paper);color:var(--ink);
+    line-height:1.6;
+    padding:0 20px calc(48px + env(safe-area-inset-bottom));
+    -webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{max-width:520px;margin:0 auto}
+  :focus-visible{outline:2.5px solid var(--ink);outline-offset:2px}
+
+  /* ── 헤더 ───────────────────────────── */
+  header{padding:44px 0 28px}
+  .eyebrow{
+    font-family:var(--mono);font-size:11px;font-weight:500;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+    display:flex;align-items:center;gap:10px;line-height:1.5;
+  }
+  .eyebrow::after{content:'';flex:1 0 24px;height:1px;background:var(--line)}
+  h1{
+    font-size:30px;font-weight:800;letter-spacing:-.035em;
+    margin-top:14px;line-height:1.25;
+  }
+  .sub{margin-top:10px;font-size:14.5px;color:var(--muted);letter-spacing:-.01em}
+
+  /* ── 번호판 스타일 입력 ─────────────── */
+  .plate{
+    background:var(--signal);
+    border-radius:6px;
+    padding:18px 20px 16px;
+    position:relative;
+    border:1px solid rgba(0,0,0,.18);
+    box-shadow:inset 0 0 0 3px rgba(16,30,43,.85), inset 0 0 0 5px var(--signal);
+  }
+  .plate .bolt{position:absolute;top:11px;width:7px;height:7px;border-radius:50%;background:rgba(16,30,43,.35)}
+  .plate .bolt.l{left:12px}.plate .bolt.r{right:12px}
+  .plate-label{
+    font-family:var(--mono);font-size:10.5px;font-weight:600;
+    color:rgba(16,30,43,.6);letter-spacing:.25em;
+    text-align:center;margin-bottom:10px;
+  }
+  .digits{display:flex;justify-content:center;gap:10px}
+  .digits input{
+    width:56px;height:68px;border:none;border-radius:4px;
+    background:rgba(16,30,43,.08);
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:38px;font-weight:600;text-align:center;
+    font-variant-numeric:tabular-nums;
+    caret-color:var(--ink);
+    outline:none;
+    transition:background .15s, box-shadow .15s;
+  }
+  .digits input:focus{background:rgba(16,30,43,.15);box-shadow:0 0 0 2.5px var(--ink)}
+  button.go{
+    width:100%;margin-top:12px;padding:15px;
+    font-family:var(--sans);font-size:15.5px;font-weight:700;letter-spacing:-.01em;
+    color:#fff;background:var(--ink);border:none;border-radius:3px;cursor:pointer;
+    transition:opacity .15s;
+  }
+  button.go:hover{opacity:.86}
+  button.go:active{transform:scale(.99)}
+  button.go:disabled{opacity:.4;cursor:default}
+
+  .msg{margin-top:16px;text-align:center;font-size:13.5px;min-height:20px;letter-spacing:-.01em}
+  .msg.err{color:var(--warn)}
+  .msg.wait{color:var(--muted)}
+
+  /* ── 결과 카드 (잉크 티켓) ───────────── */
+  .results{margin-top:20px;display:flex;flex-direction:column;gap:12px}
+  .card{
+    background:var(--ink);color:#fff;border-radius:4px;
+    padding:22px 20px 18px;
+    animation:rise .35s cubic-bezier(.2,.7,.3,1) both;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .card .role{
+    font-family:var(--mono);font-size:11px;font-weight:500;
+    letter-spacing:.16em;text-transform:uppercase;
+    color:var(--signal);margin-bottom:6px;
+  }
+  .card .name{font-size:20px;font-weight:800;letter-spacing:-.02em}
+  .card .memo{margin-top:5px;font-size:13px;color:rgba(255,255,255,.65);line-height:1.55;letter-spacing:-.01em}
+  .card a.tel{
+    display:block;margin-top:16px;text-align:center;
+    background:var(--signal);color:var(--ink);
+    border-radius:3px;padding:13px;
+    font-family:var(--mono);font-size:16px;font-weight:600;
+    text-decoration:none;letter-spacing:.03em;
+    font-variant-numeric:tabular-nums;
+  }
+  .card a.tel:focus-visible{outline:2.5px solid var(--signal);outline-offset:2px}
+
+  footer{
+    margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--muted);line-height:1.7;letter-spacing:-.01em;
+  }
+  footer .stamp{font-family:var(--mono);font-size:11px;letter-spacing:.08em}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">삼성중공업-명지/하단/에코델타시티 출퇴근 버스</div>
+    <h1>기사님 연락처 조회</h1>
+    <p class="sub">버스 번호판 <strong>뒤 4자리</strong>를 입력하면 해당 차량 기사님 연락처가 표시됩니다.</p>
+  </header>
+
+  <div class="plate" role="group" aria-label="차량번호 뒤 4자리 입력">
+    <span class="bolt l"></span><span class="bolt r"></span>
+    <div class="plate-label">차량번호 뒤 4자리</div>
+    <div class="digits">
+      <input type="tel" inputmode="numeric" maxlength="1" aria-label="첫째 자리">
+      <input type="tel" inputmode="numeric" maxlength="1" aria-label="둘째 자리">
+      <input type="tel" inputmode="numeric" maxlength="1" aria-label="셋째 자리">
+      <input type="tel" inputmode="numeric" maxlength="1" aria-label="넷째 자리">
+    </div>
+  </div>
+  <button class="go" id="btnGo">조회하기</button>
+  <div class="msg" id="msg" role="status"></div>
+  <div class="results" id="results"></div>
+
+  <footer>
+    문의가 해결되지 않으면 총무에게 연락 주세요.<br>
+    <span class="stamp" id="stamp"></span>
+  </footer>
+</div>
+
+<script>
+/* ───────────────────────────────────────────────
+   연락처 데이터는 같은 폴더의 contact-data.json 에서
+   불러옵니다. 이 HTML은 갱신 시 손댈 필요가 없습니다.
+   (연락처 원문은 암호화되어 있으며 키는 차량번호 4자리)
+─────────────────────────────────────────────── */
+const DATA_URL = 'contact-data.json';
+
+const enc = new TextEncoder(), dec = new TextDecoder();
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+let DB = null, loadError = null;
+
+async function loadDB(){
+  try{
+    const res = await fetch(DATA_URL + '?v=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if(!json.entries || !json.salt) throw new Error('형식 오류');
+    DB = json;
+    if(json.updated){
+      document.getElementById('stamp').textContent = '데이터 기준일 ' + json.updated;
+    }
+  }catch(err){
+    loadError = err;
+    document.getElementById('btnGo').disabled = true;
+    const m = document.getElementById('msg');
+    m.className = 'msg err';
+    m.textContent = '연락처 데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.';
+  }
+}
+loadDB();
+
+async function deriveKey(plate, salt, iter){
+  const base = await crypto.subtle.importKey('raw', enc.encode(plate), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt, iterations:iter, hash:'SHA-256'},
+    base, {name:'AES-GCM', length:256}, false, ['decrypt']);
+}
+
+/* ─ 조회 UI ─ */
+const boxes = [...document.querySelectorAll('.digits input')];
+const msg = document.getElementById('msg');
+const results = document.getElementById('results');
+
+boxes.forEach((b,i)=>{
+  b.addEventListener('input', ()=>{
+    b.value = b.value.replace(/\D/g,'').slice(-1);
+    if(b.value && i<3) boxes[i+1].focus();
+    if(b.value && i===3) lookup();
+  });
+  b.addEventListener('keydown', e=>{
+    if(e.key==='Backspace' && !b.value && i>0) boxes[i-1].focus();
+    if(e.key==='Enter') lookup();
+  });
+});
+document.getElementById('btnGo').addEventListener('click', lookup);
+
+function esc(s){const d=document.createElement('div');d.textContent=s??'';return d.innerHTML;}
+
+async function lookup(){
+  const plate = boxes.map(b=>b.value).join('');
+  results.innerHTML=''; msg.className='msg'; msg.textContent='';
+
+  if(plate.length!==4){ msg.className='msg err'; msg.textContent='4자리를 모두 입력해 주세요.'; return; }
+  if(!DB){ msg.className='msg err'; msg.textContent='연락처 데이터를 불러오지 못했습니다. 새로고침해 주세요.'; return; }
+
+  msg.className='msg wait'; msg.textContent='확인 중…';
+
+  const salt = unb64(DB.salt);
+  const key = await deriveKey(plate, salt, DB.iter || 250000);
+
+  const found = [];
+  for(const e of DB.entries){
+    try{
+      const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(e.i)}, key, unb64(e.c));
+      found.push(JSON.parse(dec.decode(pt)));
+    }catch{ /* 다른 차량 항목 */ }
+  }
+
+  if(!found.length){
+    msg.className='msg err';
+    msg.textContent='해당 번호로 등록된 기사님이 없습니다. 번호판 뒤 4자리를 다시 확인해 주세요.';
+    return;
+  }
+
+  msg.textContent='';
+  for(const f of found){
+    const telRaw = (f.phone||'').replace(/[^0-9+]/g,'');
+    results.insertAdjacentHTML('beforeend', `
+      <div class="card">
+        <div class="role">${esc(f.plate || ('차량 ' + plate))} 기사님</div>
+        <div class="name">${esc(f.name)}</div>
+        ${f.memo?`<div class="memo">${esc(f.memo)}</div>`:''}
+        <a class="tel" href="tel:${telRaw}">📞 ${esc(f.phone)}</a>
+      </div>`);
+  }
+}
+</script>
+</body>
+</html>
